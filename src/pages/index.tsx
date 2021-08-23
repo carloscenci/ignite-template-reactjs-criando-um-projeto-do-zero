@@ -1,5 +1,6 @@
 import { GetStaticProps } from 'next';
 import Link from 'next/link'
+import Head from 'next/head'
 import Header from '../components/Header';
 import { FiCalendar, FiUser } from 'react-icons/fi'
 
@@ -30,6 +31,10 @@ interface HomeProps {
 export default function Home() {
   return (
     <>
+      <Head>
+        <title>Spacetraveling</title>
+      </Head>
+
       <main className={commonStyles.container}>
         <Header />
 
@@ -50,6 +55,10 @@ export default function Home() {
               </ul>
             </a>
           </Link>
+
+          <button type="button">
+            Carregar mais posts
+          </button>
         </div>
       </main>
     </>
