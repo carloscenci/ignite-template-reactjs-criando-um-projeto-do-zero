@@ -14,9 +14,11 @@ import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import Comments from '../../components/Comments';
+import { spawn } from 'child_process';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -75,7 +77,20 @@ export default function Post({ post, navigation, preview }: PostProps): JSX.Elem
     {
       locale: ptBR
     }
-  )
+  );
+
+  const isPostEdited = post.first_publication_date !== post.last_publication_date;
+
+  let editionDate;
+  if(isPostEdited) {
+    editionDate = format(
+      new Date(post.last_publication_date),
+      "'* editado em' dd MMM yyyy', às' H':'m",
+      {
+        locale: ptBR
+      }
+    )
+  }
 
   return (
     <>
@@ -103,6 +118,7 @@ export default function Post({ post, navigation, preview }: PostProps): JSX.Elem
                 {`${readTime} min`}
               </li>
             </ul>
+            { isPostEdited && <span>{editionDate}</span> }
           </div>
 
           {post.data.content.map(content => (
@@ -204,6 +220,7 @@ export const getStaticProps: GetStaticProps = async ({
   const post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     data: {
       title: response.data.title,
       subtitle: response.data.subtitle,
