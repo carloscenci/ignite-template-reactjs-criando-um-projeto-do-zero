@@ -45,17 +45,45 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
     };
   });
 
-  console.log('====================================');
-  console.log(formattedPost);
-  console.log('====================================');
-
-
   const [posts, setPosts] = useState<Post[]>(formattedPost);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page)
+  const [currentPage, setCurrentPage] = useState(1)
+
+  async function handleNextPage(): Promise<void> {
+    if(currentPage !== 1 && nextPage === null) {
+      return;
+    }
+
+    const postsResults = await fetch(`${nextPage}`).then(response => response.json())
+
+    setNextPage(postsResults.next_page)
+    setCurrentPage(postsResults.page)
+
+    const newPosts = postsResults.results.map(post => {
+      return {
+        uid: post.uid,
+        first_publication_date: format(
+          new Date(post.first_publication_date),
+          'dd MMM yyyy',
+          {
+            locale: ptBR
+          }
+        ),
+        data: {
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
+        }
+      }
+    });
+
+    setPosts([...posts, ...newPosts])
+  }
 
   return (
     <>
       <Head>
-        <title>Spacetraveling</title>
+        <title>Home | Spacetraveling</title>
       </Head>
 
       <main className={commonStyles.container}>
@@ -66,7 +94,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
             <Link href={`/post/${post.uid}`} key={post.uid}>
               <a className={styles.post}>
                 <strong>{post.data.title}</strong>
-                <p>{post.data.subtitle}.</p>
+                <p>{post.data.subtitle}</p>
                 <ul>
                   <li>
                     <FiCalendar />
@@ -81,9 +109,11 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
             </Link>)
           )}
 
-          <button type="button">
-            Carregar mais posts
-          </button>
+          {nextPage && (
+            <button type="button" onClick={handleNextPage}>
+              Carregar mais posts
+            </button>
+          )}
         </div>
       </main>
     </>
@@ -95,7 +125,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
     {
-      pageSize: 3,
+      pageSize: 1,
     }
   );
 
